@@ -71,6 +71,12 @@ export default function Map({ data, realtimeData, selectedRouteId }: MapProps) {
         zoom={6} 
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
+        maxBounds={[
+          [0.85, 99.6], // Southwest boundary (Singapore/Sumatra border)
+          [7.4, 104.7]  // Northeast boundary (Thai border/South China Sea)
+        ]}
+        maxBoundsViscosity={1.0}
+        minZoom={6}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
