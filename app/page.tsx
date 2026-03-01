@@ -25,6 +25,31 @@ export default function App() {
   });
   
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCountdown(10);
+    }
+  }, [realtimeData, isMounted]);
+
+  // Tick the countdown every second
+  useEffect(() => {
+    if (!isMounted) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : 10));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isMounted]);
+
+  const activeTrainCount = isMounted && realtimeData ? realtimeData.length : '--';
 
   if (error) return <div className="h-screen flex items-center justify-center bg-black text-red-500">System Error: Failed to link with GTFS Satellite</div>;
   if (!data) return <div className="h-screen flex items-center justify-center bg-black text-blue-500 animate-pulse font-mono">ESTABLISHING CONNECTION TO MALAYSIA TRANSPORT GRID...</div>;
@@ -60,11 +85,25 @@ export default function App() {
       `}</style>
 
       {/* Status Bar */}
-      <div className="absolute top-6 right-6 z-10 glass-panel px-4 py-2 rounded-full flex items-center gap-3 text-[10px] font-mono tracking-tighter uppercase">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        <span className="text-white/80">Satellite Link: Optimal</span>
-        <span className="text-white/40">|</span>
-        <span className="text-white/80">{data?.routes.length} Routes Identified</span>
+      <div className="absolute top-6 right-6 z-10 glass-panel px-4 py-2 rounded-lg flex items-center gap-4 text-xs font-mono tracking-tighter uppercase min-w-[300px]">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+        <div className="flex flex-col gap-1 w-full">
+          <div className="flex justify-between w-full text-white/80">
+            <span>System Status</span>
+            <span className="text-green-400 font-bold">Optimal</span>
+          </div>
+          <div className="w-full h-[1px] bg-white/10" />
+          <div className="flex justify-between w-full text-white/60">
+            <span>Active Trains</span>
+            <span className="text-white font-bold">{activeTrainCount}</span>
+          </div>
+          <div className="flex justify-between w-full text-white/60">
+            <span>Next Refresh</span>
+            <span className={countdown !== null && countdown <= 3 ? "text-yellow-400 font-bold" : "text-white font-bold"}>
+              {countdown !== null ? `${countdown}s` : '--'}
+            </span>
+          </div>
+        </div>
       </div>
     </main>
   );

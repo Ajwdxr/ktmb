@@ -47,3 +47,22 @@ export function getPointAtDistance(
   }
   return points[points.length - 1];
 }
+
+/**
+ * Calculates the bearing (0-360 degrees) between two geographical coordinates
+ */
+export function getBearing(start: [number, number], end: [number, number]): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+  const lat1 = toRad(start[0]);
+  const lon1 = toRad(start[1]);
+  const lat2 = toRad(end[0]);
+  const lon2 = toRad(end[1]);
+
+  const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+

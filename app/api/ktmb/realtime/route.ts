@@ -4,11 +4,15 @@ import { transit_realtime } from 'gtfs-realtime-bindings';
 export async function GET() {
   try {
     const response = await fetch('https://api.data.gov.my/gtfs-realtime/vehicle-position/ktmb/', {
-      cache: 'no-store', // Always get fresh live positions
+      next: { revalidate: 30 }, // Cache on server for 30s to prevent Too Many Requests
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch GTFS-Realtime: ${response.statusText}`);
+      if (response.status === 429) {
+        console.warn('GTFS Realtime Rate Limited (429). Returning empty array gracefully.');
+        return NextResponse.json([]);
+      }
+      throw new Error(`Failed to fetch GTFS-Realtime: ${response.status} ${response.statusText}`);
     }
 
     const buffer = await response.arrayBuffer();
@@ -22,6 +26,7 @@ export async function GET() {
       latitude: entity.vehicle?.position?.latitude,
       longitude: entity.vehicle?.position?.longitude,
       bearing: entity.vehicle?.position?.bearing,
+      speed: entity.vehicle?.position?.speed ? Math.round(entity.vehicle.position.speed * 3.6) : 0,
       timestamp: entity.vehicle?.timestamp,
       tripId: entity.vehicle?.trip?.tripId,
       routeId: entity.vehicle?.trip?.routeId,
